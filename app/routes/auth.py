@@ -21,7 +21,7 @@ async def signup(user: UserCreate):
         "email": user.email,
         "password": hashed_pwd
     }
-    result = await db["users"].insert_one(new_user())
+    result = await db["users"].insert_one(new_user)
     return {"message": "Utilisateur créé avec succès", "user_id": str(result.inserted_id)}
 
 #verification de l'authentification de l'utilisateur et création du token JWT pour les utilisateurs qui se connecten
