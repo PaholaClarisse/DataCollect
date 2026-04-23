@@ -23,7 +23,7 @@ def hash_password(password:str ) -> str:
 #foncton pour vérifier le mot de passe
 def verify_password(plain_password:str, hashed_password:str) -> bool:
     try:
-        return argon2.verify(plain_password, hashed_password)
+        return argon2.verify(hashed_password, plain_password)
     except Exception:
         return False
 
@@ -50,9 +50,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     return user
 
 # fonction pour créer un token JWT
-async def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt  
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
