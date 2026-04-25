@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict, Field, constr, field_validator
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any, Dict
 
 class ChampFormulaire(BaseModel):
     label: str
@@ -30,6 +30,13 @@ class FormulaireUpdate(BaseModel):
     champs: Optional[List[ChampFormulaire]] = None
     actif: Optional[bool] = None
 
+class FormulairePublique(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    title: str
+    description: Optional[str] = None
+    champs: List[ChampFormulaire]
+    actif: bool
+    
 class FormulaireResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     id: str = Field(..., alias="_id")
@@ -44,11 +51,11 @@ class FormulaireResponse(BaseModel):
 
 
 class ReponseCreate(BaseModel):
-    donnees: dict
+    donnees: Dict[str, Any]
 
 class ReponseResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     id: str = Field(..., alias="_id")
     formulaire_id: str
-    donnees: dict
+    donnees: Dict[str, Any]
     created_at: datetime
