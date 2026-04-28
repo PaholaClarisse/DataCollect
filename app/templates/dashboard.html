@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — DataCollect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-deep:    #0A1628;
+            --blue-dark:    #0D2247;
+            --blue-mid:     #1A3A6B;
+            --blue-accent:  #2563EB;
+            --blue-bright:  #3B82F6;
+            --blue-glow:    #60A5FA;
+            --blue-pale:    #DBEAFE;
+            --white:        #F8FAFF;
+            --text-muted:   #93C5FD;
+            --danger:       #EF4444;
+            --success:      #10B981;
+            --border:       rgba(59,130,246,0.18);
+            --card-bg:      rgba(13,34,71,0.7);
+            --modal-bg:     rgba(10,22,40,0.97);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--blue-deep);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 20% 10%, rgba(37,99,235,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 80% 80%, rgba(59,130,246,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 60% 30%, rgba(96,165,250,0.07) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            height: 68px;
+            background: rgba(10,22,40,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav h1 span.logo-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--blue-bright);
+            box-shadow: 0 0 8px var(--blue-bright);
+            display: inline-block;
+        }
+
+        .btn-logout {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 0.45rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            color: var(--white);
+            border-color: rgba(59,130,246,0.5);
+            background: rgba(59,130,246,0.08);
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 4rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-header-left h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--white);
+            line-height: 1.1;
+        }
+
+        .page-header-left p {
+            margin-top: 0.3rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .btn-primary {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--white);
+            background: var(--blue-accent);
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+        }
+        .btn-primary:hover {
+            background: var(--blue-bright);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(59,130,246,0.45);
+        }
+
+        #formulaires-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        .loading-text {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 3rem;
+            font-size: 0.9rem;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s;
+            animation: fadeUp 0.4s ease both;
+        }
+        .form-card:hover {
+            border-color: rgba(59,130,246,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(10,22,40,0.6), 0 0 0 1px rgba(59,130,246,0.15);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .form-card .card-desc {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--blue-glow);
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.15);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            width: fit-content;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-card {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 0.42rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn-card.secondary {
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .btn-card.secondary:hover {
+            background: rgba(59,130,246,0.1);
+            color: var(--blue-glow);
+            border-color: rgba(59,130,246,0.35);
+        }
+        .btn-card.danger {
+            background: transparent;
+            color: #F87171;
+            border-color: rgba(239,68,68,0.2);
+        }
+        .btn-card.danger:hover {
+            background: rgba(239,68,68,0.1);
+            border-color: rgba(239,68,68,0.4);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(5,12,25,0.75);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--modal-bg);
+            border: 1px solid rgba(59,130,246,0.25);
+            border-radius: 20px;
+            padding: 2rem 2rem 1.8rem;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(59,130,246,0.1);
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .btn-close {
+            background: rgba(59,130,246,0.08);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s;
+        }
+        .btn-close:hover { background: rgba(239,68,68,0.12); color: #F87171; border-color: rgba(239,68,68,0.3); }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .field-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--blue-glow);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .field-input, .field-textarea {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--white);
+            background: rgba(26,58,107,0.35);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field-input::placeholder, .field-textarea::placeholder { color: rgba(147,197,253,0.4); }
+        .field-input:focus, .field-textarea:focus {
+            border-color: var(--blue-bright);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .field-textarea { resize: vertical; min-height: 80px; }
+
+        #champs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .champ-row {
+            background: rgba(26,58,107,0.25);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 0.6rem;
+            align-items: center;
+            animation: fadeUp 0.2s ease both;
+        }
+
+        .champ-row .field-input,
+        .champ-row .field-select {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.84rem;
+            color: var(--white);
+            background: rgba(10,22,40,0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .champ-row .field-input:focus,
+        .champ-row .field-select:focus { border-color: var(--blue-bright); }
+        .champ-row .field-select option { background: var(--blue-dark); }
+
+        .champ-check-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .champ-check-label input[type="checkbox"] {
+            accent-color: var(--blue-bright);
+            width: 14px; height: 14px;
+        }
+
+        .btn-remove {
+            background: transparent;
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #F87171;
+            border-radius: 8px;
+            width: 30px; height: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-remove:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.5); }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.7rem;
+            margin-top: 1.4rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-add-field {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.83rem;
+            font-weight: 500;
+            color: var(--blue-glow);
+            background: rgba(59,130,246,0.08);
+            border: 1px dashed rgba(59,130,246,0.3);
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.18s;
+            margin-bottom: 1rem;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        }
+        .btn-add-field:hover {
+            background: rgba(59,130,246,0.14);
+            border-color: rgba(59,130,246,0.5);
+            color: var(--white);
+        }
+
+        .btn-submit {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--white);
+            background: var(--blue-accent);
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+        }
+        .btn-submit:hover { background: var(--blue-bright); box-shadow: 0 6px 24px rgba(59,130,246,0.4); }
+
+        .btn-cancel {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .btn-cancel:hover { color: var(--white); background: rgba(59,130,246,0.08); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--blue-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--blue-mid); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--blue-accent); }
+
+        @media (max-width: 600px) {
+            .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            nav { padding: 0 1rem; }
+            main { padding: 1.5rem 1rem 3rem; }
+            .champ-row { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1>📋 DataCollect <span class="logo-dot"></span></h1>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div class="page-header-left">
+                <h2>Mes formulaires</h2>
+                <p>Gérez et partagez vos formulaires de collecte</p>
+            </div>
+            <button class="btn-primary" onclick="openModal('createModal')">
+                ➕ Créer un formulaire
+            </button>
+        </div>
+
+        <div id="formulaires-list">
+            <p class="loading-text">⏳ Chargement de vos formulaires...</p>
+        </div>
+    </main>
+
+    <div id="createModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>✏️ Créer un formulaire</h2>
+                <button class="btn-close" onclick="closeModal('createModal')">✕</button>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Titre</label>
+                <input class="field-input" type="text" id="formTitle" placeholder="Ex : Enquête satisfaction client">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Description <span style="opacity:.5;font-size:.75em;text-transform:none">(optionnel)</span></label>
+                <textarea class="field-textarea" id="formDescription" placeholder="Décrivez brièvement l'objectif du formulaire..."></textarea>
+            </div>
+
+            <label class="field-label" style="display:block;margin-bottom:.6rem">Champs du formulaire</label>
+            <div id="champs-container"></div>
+
+            <button class="btn-add-field" onclick="ajouterChamp()">
+                ➕ Ajouter un champ
+            </button>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal('createModal')">Annuler</button>
+                <button class="btn-submit" onclick="creerFormulaire()">✅ Créer le formulaire</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token')
+        if (!token) window.location.href = '/'
+
+        function logout() {
+            localStorage.removeItem('token')
+            window.location.href = '/'
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active')
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active')
+        }
+
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal('createModal')
+        })
+
+        function ajouterChamp() {
+            const container = document.getElementById('champs-container')
+            const index = container.children.length
+            const div = document.createElement('div')
+            div.className = 'champ-row'
+            div.id = `champ-${index}`
+            div.innerHTML = `
+                <input class="field-input" type="text" id="label-${index}" placeholder="Nom du champ">
+                <select class="field-select" id="type-${index}">
+                    <option value="texte">Texte</option>
+                    <option value="nombre">Nombre</option>
+                    <option value="email">Email</option>
+                    <option value="date">Date</option>
+                    <option value="choix_unique">Choix unique</option>
+                    <option value="choix_multiple">Choix multiple</option>
+                </select>
+                <label class="champ-check-label">
+                    <input type="checkbox" id="obligatoire-${index}" checked>
+                    Requis
+                </label>
+                <button class="btn-remove" onclick="supprimerChamp(${index})">✕</button>
+            `
+            container.appendChild(div)
+        }
+
+        function supprimerChamp(index) {
+            const el = document.getElementById(`champ-${index}`)
+            if (el) el.remove()
+        }
+
+        async function creerFormulaire() {
+            const title = document.getElementById('formTitle').value
+            const description = document.getElementById('formDescription').value
+            const container = document.getElementById('champs-container')
+            const champs = []
+
+            for (let i = 0; i < container.children.length; i++) {
+                const label = document.getElementById(`label-${i}`)
+                const type = document.getElementById(`type-${i}`)
+                const obligatoire = document.getElementById(`obligatoire-${i}`)
+                if (label) {
+                    champs.push({
+                        label: label.value,
+                        type_champ: type.value,
+                        obligatoire: obligatoire.checked
+                    })
+                }
+            }
+
+            const response = await fetch('/formulaires', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title, description, champs, actif: true })
+            })
+
+            if (response.ok) {
+                alert('Formulaire créé !')
+                closeModal('createModal')
+                loadFormulaires()
+            } else {
+                const data = await response.json()
+                alert(data.detail)
+            }
+        }
+
+        async function loadFormulaires() {
+            const container = document.getElementById('formulaires-list')
+            container.innerHTML = '<p class="loading-text">⏳ Chargement...</p>'
+
+            const response = await fetch('/formulaires', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            const data = await response.json()
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Aucun formulaire créé pour l'instant.<br>Commencez par en créer un !</p>
+                    </div>`
+                return
+            }
+
+            container.innerHTML = data.map((f, i) => `
+                <div class="form-card" style="animation-delay:${i * 0.07}s">
+                    <h3>${f.title}</h3>
+                    <p class="card-desc">${f.description || 'Pas de description'}</p>
+                    <div class="card-meta">📊 ${f.nombre_reponses} réponse${f.nombre_reponses !== 1 ? 's' : ''}</div>
+                    <div class="card-actions">
+                        <button class="btn-card secondary" onclick="copierLien('${f._id}')">🔗 Copier le lien</button>
+                        <button class="btn-card secondary" onclick="voirReponses('${f._id}')">👁 Voir réponses</button>
+                        <button class="btn-card danger" onclick="supprimer('${f._id}')">🗑 Supprimer</button>
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        function copierLien(id) {
+            const lien = `${window.location.origin}/f/${id}`
+            navigator.clipboard.writeText(lien)
+            alert('Lien copié !')
+        }
+
+        function voirReponses(id) {
+            window.location.href = `/formulaires/${id}/reponses`
+        }
+
+        async function supprimer(id) {
+            if (!confirm('Supprimer ce formulaire ?')) return
+            await fetch(`/formulaires/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            loadFormulaires()
+        }
+
+        loadFormulaires()
+    </script>
+
+</body>
+</html>
+
+

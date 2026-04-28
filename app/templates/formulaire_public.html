@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/couleur.css">
+    <title>Formulaire</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f8fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .champ {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 5px rgba(37, 99, 235, 0.4);
+        }
+
+        .options label {
+            display: block;
+            font-weight: normal;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 id="form-title">Chargement...</h1>
+        <p id="form-description"></p>
+        <div id="champs-container"></div>
+        <button onclick="soumettre()">Envoyer</button>
+    </div>
+
+    <script>
+        const formulaireId = "{{ formulaire_id }}"
+        const token = localStorage.getItem('token')
+        if (!token) window.location.href = '/'
+
+        async function loadFormulaire() {
+            const response = await fetch(`/formulaires/${formulaireId}/public`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            })
+            const data = await response.json()
+
+            document.getElementById('form-title').textContent = data.title
+            document.getElementById('form-description').textContent = data.description || ''
+
+            const container = document.getElementById('champs-container')
+            container.innerHTML = data.champs.map((champ, index) => `
+                <div class="champ">
+                    <label>${champ.label} ${champ.obligatoire ? '*' : ''}</label>
+                    <div class="options">
+                        ${genererChamp(champ, index)}
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        function genererChamp(champ, index) {
+            switch(champ.type_champ) {
+                case 'texte':
+                    return `<input type="text" id="champ-${index}" placeholder="${champ.placeholder || ''}">`
+                case 'nombre':
+                    return `<input type="number" id="champ-${index}">`
+                case 'email':
+                    return `<input type="email" id="champ-${index}">`
+                case 'date':
+                    return `<input type="date" id="champ-${index}">`
+                case 'zone_texte':
+                    return `<textarea id="champ-${index}"></textarea>`
+                case 'choix_unique':
+                    return champ.options.map(opt => `
+                        <label>
+                            <input type="radio" name="champ-${index}" value="${opt}"> ${opt}
+                        </label>
+                    `).join('')
+                case 'choix_multiple':
+                    return champ.options.map(opt => `
+                        <label>
+                            <input type="checkbox" id="champ-${index}-${opt}" value="${opt}"> ${opt}
+                        </label>
+                    `).join('')
+                default:
+                    return `<input type="text" id="champ-${index}">`
+            }
+        }
+
+        async function soumettre() {
+            const container = document.getElementById('champs-container')
+            const donnees = {}
+            const divs = container.querySelectorAll('.champ')
+
+            divs.forEach((div, index) => {
+                const label = div.querySelector('label').textContent.replace(' *', '').trim()
+                const input = div.querySelector('input, textarea, select')
+                if (input) {
+                    if (input.type === 'radio') {
+                        const checked = div.querySelector('input:checked')
+                        if (checked) donnees[label] = checked.value
+                    } else if (input.type === 'checkbox') {
+                        const checked = div.querySelectorAll('input:checked')
+                        donnees[label] = Array.from(checked).map(c => c.value)
+                    } else {
+                        donnees[label] = input.value
+                    }
+                }
+            })
+
+            const response = await fetch(`/formulaires/${formulaireId}/reponses`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({donnees})
+            })
+
+            if (response.ok) {
+                alert('Réponse envoyée avec succès !')
+                window.location.href = '/'
+            } else {
+                const data = await response.json()
+                alert(data.detail)
+            }
+        }
+
+        loadFormulaire()
+    </script>
+
+</body>
+</html>
+
+
+
