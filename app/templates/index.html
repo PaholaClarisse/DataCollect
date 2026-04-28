@@ -1,101 +1,354 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCollect</title>
-    <style>
-        /* CSS viendra ici */
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataCollect</title>
+  <link rel="stylesheet" href="/static/css/couleur.css">
+  <style>
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2a3a; }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      background: #1a2a3a;
+      height: 62px;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    nav h1 {
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    nav .nav-actions { display: flex; gap: 10px; }
+
+    .btn-nav-outline {
+      padding: 7px 18px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-nav-outline:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.7);
+    }
+    .btn-nav-solid {
+      padding: 7px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #4a9eff;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-nav-solid:hover { background: #2d87f0; }
+
+    /* ===== HERO ===== */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3.5rem;
+    }
+    .hero h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #1a2a3a;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.8px;
+    }
+    .hero p {
+      font-size: 1rem;
+      color: #6b7a8d;
+      max-width: 440px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.65;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-hero-primary {
+      padding: 13px 30px;
+      background: #1a2a3a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-hero-primary:hover { background: #243a50; }
+    .btn-hero-primary:active { transform: scale(0.98); }
+    .btn-hero-secondary {
+      padding: 13px 30px;
+      background: #fff;
+      color: #1a2a3a;
+      border: 1.5px solid #d1dbe6;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-hero-secondary:hover { border-color: #1a2a3a; }
+
+    /* ===== FEATURE CARDS ===== */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+    .feature-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.5rem 1.25rem;
+      border: 1px solid #e2e8f0;
+      transition: box-shadow 0.2s;
+    }
+    .feature-card:hover { box-shadow: 0 4px 20px rgba(26,42,58,0.08); }
+    .feature-icon {
+      width: 42px; height: 42px;
+      background: #e8f1fb;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 { font-size: 14px; font-weight: 700; color: #1a2a3a; margin-bottom: 6px; }
+    .feature-card p { font-size: 13px; color: #6b7a8d; line-height: 1.55; }
+
+    /* ===== MODAL OVERLAY ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 25, 40, 0.6);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.25rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-box h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a2a3a;
+      margin-bottom: 1.5rem;
+    }
+    .modal-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7a8d;
+      margin-bottom: 5px;
+    }
+    .modal-box input[type="text"],
+    .modal-box input[type="email"],
+    .modal-box input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a2a3a;
+      background: #f8fafc;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .modal-box input:focus {
+      border-color: #1a2a3a;
+      background: #fff;
+    }
+    .modal-footer { display: flex; gap: 10px; margin-top: 4px; }
+    .btn-modal-primary {
+      flex: 1;
+      padding: 10px;
+      background: #1a2a3a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-modal-primary:hover { background: #243a50; }
+    .btn-modal-primary:active { transform: scale(0.98); }
+    .btn-modal-ghost {
+      padding: 10px 16px;
+      background: transparent;
+      color: #6b7a8d;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-modal-ghost:hover { border-color: #aab4be; color: #1a2a3a; }
+  </style>
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav>
-        <h1>📋 DataCollect</h1>
-        <div>
-            <button onclick="openModal('loginModal')">Connexion</button>
-            <button onclick="openModal('signupModal')">S'inscrire</button>
-        </div>
-    </nav>
-    <!-- MODAL CONNEXION -->
-    <div id="loginModal" style="display:none">
-        <h2>Connexion</h2>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPassword" placeholder="Mot de passe">
-        <button onclick="login()">Se connecter</button>
-        <button onclick="closeModal('loginModal')">Fermer</button>
+<!-- NAVBAR -->
+<nav>
+  <h1>📋 DataCollect</h1>
+  <div class="nav-actions">
+    <button class="btn-nav-outline" onclick="openModal('loginModal')">Connexion</button>
+    <button class="btn-nav-solid"   onclick="openModal('signupModal')">S'inscrire</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h2>Collectez vos données<br>simplement</h2>
+  <p>Une plateforme intuitive pour créer, gérer et analyser vos formulaires de collecte de données.</p>
+  <div class="hero-cta">
+    <button class="btn-hero-primary" onclick="openModal('signupModal')">Commencer gratuitement</button>
+    <button class="btn-hero-secondary" onclick="openModal('loginModal')">Se connecter</button>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">📝</div>
+    <h3>Formulaires faciles</h3>
+    <p>Créez des formulaires en quelques clics, sans aucune compétence technique.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📊</div>
+    <h3>Analyse en temps réel</h3>
+    <p>Visualisez et exportez vos données dès qu'elles arrivent.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <h3>Données sécurisées</h3>
+    <p>Accès protégé, données chiffrées, confidentialité garantie.</p>
+  </div>
+</div>
+
+<!-- MODAL CONNEXION -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Connexion</h2>
+    <label class="modal-label">Email</label>
+    <input type="email" id="loginEmail" placeholder="votre@email.com">
+    <label class="modal-label">Mot de passe</label>
+    <input type="password" id="loginPassword" placeholder="••••••••">
+    <div class="modal-footer">
+      <button class="btn-modal-primary" onclick="login()">Se connecter</button>
+      <button class="btn-modal-ghost"   onclick="closeModal('loginModal')">Fermer</button>
     </div>
+  </div>
+</div>
 
-    <!-- MODAL INSCRIPTION -->
-    <div id="signupModal" style="display:none">
-        <h2>Inscription</h2>
-        <input type="text" id="signupName" placeholder="Nom">
-        <input type="email" id="signupEmail" placeholder="Email">
-        <input type="password" id="signupPassword" placeholder="Mot de passe">
-        <button onclick="signup()">S'inscrire</button>
-        <button onclick="closeModal('signupModal')">Fermer</button>
+<!-- MODAL INSCRIPTION -->
+<div id="signupModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Inscription</h2>
+    <label class="modal-label">Nom</label>
+    <input type="text"     id="signupName"     placeholder="Votre nom">
+    <label class="modal-label">Email</label>
+    <input type="email"    id="signupEmail"    placeholder="votre@email.com">
+    <label class="modal-label">Mot de passe</label>
+    <input type="password" id="signupPassword" placeholder="••••••••">
+    <div class="modal-footer">
+      <button class="btn-modal-primary" onclick="signup()">S'inscrire</button>
+      <button class="btn-modal-ghost"   onclick="closeModal('signupModal')">Fermer</button>
     </div>
+  </div>
+</div>
 
-    <script>
-    // Ouvrir modal
-    function openModal(modalId) {
-        document.getElementById(modalId).style.display = 'block'
+<script>
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active')
+  }
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active')
+  }
+  // Fermer en cliquant sur l'overlay
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('active')
+    })
+  })
+</script>
+
+<script>
+  async function login() {
+    const email    = document.getElementById('loginEmail').value
+    const password = document.getElementById('loginPassword').value
+    const formData = new FormData()
+    formData.append('username', email)
+    formData.append('password', password)
+    const response = await fetch('login', { method: 'POST', body: formData })
+    const data = await response.json()
+    if (response.ok) {
+      localStorage.setItem('token', data.access_token)
+      window.location.href = '/dashboard'
+    } else {
+      alert(data.detail)
     }
+  }
 
-    // Fermer modal
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none'
+  async function signup() {
+    const name     = document.getElementById('signupName').value
+    const email    = document.getElementById('signupEmail').value
+    const password = document.getElementById('signupPassword').value
+    const response = await fetch('signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    })
+    const data = await response.json()
+    if (response.ok) {
+      alert("Compte créé ! Connectez-vous.")
+      closeModal('signupModal')
+      openModal('loginModal')
+    } else {
+      alert(data.detail)
     }
-    </script>
-
-
-    <script>
-    async function login() {
-        const email = document.getElementById('loginEmail').value
-        const password = document.getElementById('loginPassword').value
-
-        const formData = new FormData()
-        formData.append('username', email)
-        formData.append('password', password)
-
-        const response = await fetch('login', {
-            method: 'POST',
-            body: formData
-        })
-
-        const data = await response.json()
-
-        if (response.ok) {
-            localStorage.setItem('token', data.access_token)
-            window.location.href = '/dashboard'
-        } else {
-            alert(data.detail)
-        }
-    }
-
-    async function signup() {
-        const name = document.getElementById('signupName').value
-        const email = document.getElementById('signupEmail').value
-        const password = document.getElementById('signupPassword').value
-
-        const response = await fetch('signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name, email, password})
-        })
-
-        const data = await response.json()
-
-        if (response.ok) {
-            alert("Compte créé ! Connectez-vous.")
-            closeModal('signupModal')
-            openModal('loginModal')
-        } else {
-            alert(data.detail)
-        }
-    }
-    </script>
+  }
+</script>
 
 </body>
 </html>
+
+

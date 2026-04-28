@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/couleur.css">
+    <title>Réponses</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f8fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .top-bar a {
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .top-bar a:hover {
+            text-decoration: underline;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #f1f5f9;
+        }
+
+        tr:hover {
+            background: #e0ecff;
+        }
+
+        .empty {
+            text-align: center;
+            color: #555;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Réponses du formulaire</h1>
+
+        <div class="top-bar">
+            <a href="/dashboard">← Retour</a>
+            <button onclick="exportCSV()">📥 Exporter CSV</button>
+        </div>
+
+        <div id="reponses-container" class="empty">
+            Chargement...
+        </div>
+    </div>
+
+    <script>
+        const formulaireId = "{{ formulaire_id }}"
+        const token = localStorage.getItem('token')
+        if (!token) window.location.href = '/'
+
+        async function loadReponses() {
+            const token = localStorage.getItem('token')
+            console.log("Token:", token)
+            
+            if (!token) {
+                window.location.href = '/'
+                return
+            }
+
+            const response = await fetch(`/api/formulaires/${formulaireId}/reponses`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (response.status === 401) {
+                alert("Session expirée — reconnectez-vous")
+                localStorage.removeItem('token')
+                window.location.href = '/'
+                return
+            }
+
+            const data = await response.json()
+            const container = document.getElementById('reponses-container')
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="empty">Aucune réponse</p>'
+                return
+            }
+
+            const headers = Object.keys(data[0].donnees)
+
+            container.innerHTML = `
+                <table>
+                    <tr>
+                        <th>Répondant</th>
+                        ${headers.map(h => `<th>${h}</th>`).join('')}
+                        <th>Date</th>
+                    </tr>
+                    ${data.map(r => `
+                        <tr>
+                            <td>${r.repondant.name}</td>
+                            ${headers.map(h => `<td>${r.donnees[h] || ''}</td>`).join('')}
+                            <td>${new Date(r.date_soumission).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `
+        }
+
+        async function exportCSV() {
+            const token = localStorage.getItem('token')
+            
+            const response = await fetch(`/api/formulaires/${formulaireId}/export`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            if (response.status === 401) {
+                alert("Session expirée — reconnectez-vous")
+                localStorage.removeItem('token')
+                window.location.href = '/'
+                return
+            }
+
+            if (!response.ok) {
+                alert("Erreur lors de l'exportation")
+                return
+            }
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `reponses_${formulaireId}.csv`
+            a.click()
+            window.URL.revokeObjectURL(url)
+        }
+
+        loadReponses()
+    </script>
+
+</body>
+</html>
+
+

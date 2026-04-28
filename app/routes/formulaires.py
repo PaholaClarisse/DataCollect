@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from app.services.auth import get_current_user
 from app.services.formulaires import FormulaireService
 from app.schemas.formulaire import FormulaireCreate, FormulaireResponse, FormulaireUpdate, FormulairePublique, ReponseCreate, ReponseResponse
-
+import io
+from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ async def submit_reponse(formulaire_id: str, reponse: ReponseCreate, current_use
     return await FormulaireService.submit_reponse(formulaire_id, reponse, current_user)
 
 #endpoint pour recuperer les reponses d'un formulaire (seulement pour l'auteur du formulaire)
-@router.get("/formulaires/{formulaire_id}/reponses")
+@router.get("/api/formulaires/{formulaire_id}/reponses")
 async def get_reponses(formulaire_id: str, current_user: dict = Depends(get_current_user)):
     return await FormulaireService.get_reponses(formulaire_id, current_user)
 
@@ -47,7 +48,15 @@ async def get_statistiques(formulaire_id: str, current_user: dict = Depends(get_
     return await FormulaireService.get_statistiques(formulaire_id, current_user)
 
 #endpoint pour exporter les reponses d'un formulaire au format csv
-@router.get("/formulaires/{formulaire_id}/export")
+@router.get("/api/formulaires/{formulaire_id}/export")
 async def export_reponses_csv(formulaire_id: str, current_user: dict = Depends(get_current_user)):
-    return await FormulaireService.export_reponses_csv(formulaire_id, current_user)
+    csv_content = await FormulaireService.export_reponses_csv(formulaire_id, current_user)
+    
+    return StreamingResponse(
+        io.StringIO(csv_content),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=reponses_{formulaire_id}.csv"
+        }
+    )
 
