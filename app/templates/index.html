@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCollect</title>
+    <style>
+        /* CSS viendra ici */
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <h1>📋 DataCollect</h1>
+        <div>
+            <button onclick="openModal('loginModal')">Connexion</button>
+            <button onclick="openModal('signupModal')">S'inscrire</button>
+        </div>
+    </nav>
+    <!-- MODAL CONNEXION -->
+    <div id="loginModal" style="display:none">
+        <h2>Connexion</h2>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Mot de passe">
+        <button onclick="login()">Se connecter</button>
+        <button onclick="closeModal('loginModal')">Fermer</button>
+    </div>
+
+    <!-- MODAL INSCRIPTION -->
+    <div id="signupModal" style="display:none">
+        <h2>Inscription</h2>
+        <input type="text" id="signupName" placeholder="Nom">
+        <input type="email" id="signupEmail" placeholder="Email">
+        <input type="password" id="signupPassword" placeholder="Mot de passe">
+        <button onclick="signup()">S'inscrire</button>
+        <button onclick="closeModal('signupModal')">Fermer</button>
+    </div>
+
+    <script>
+    // Ouvrir modal
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'block'
+    }
+
+    // Fermer modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none'
+    }
+    </script>
+
+
+    <script>
+    async function login() {
+        const email = document.getElementById('loginEmail').value
+        const password = document.getElementById('loginPassword').value
+
+        const formData = new FormData()
+        formData.append('username', email)
+        formData.append('password', password)
+
+        const response = await fetch('login', {
+            method: 'POST',
+            body: formData
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+            localStorage.setItem('token', data.access_token)
+            window.location.href = '/dashboard'
+        } else {
+            alert(data.detail)
+        }
+    }
+
+    async function signup() {
+        const name = document.getElementById('signupName').value
+        const email = document.getElementById('signupEmail').value
+        const password = document.getElementById('signupPassword').value
+
+        const response = await fetch('signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name, email, password})
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+            alert("Compte créé ! Connectez-vous.")
+            closeModal('signupModal')
+            openModal('loginModal')
+        } else {
+            alert(data.detail)
+        }
+    }
+    </script>
+
+</body>
+</html>

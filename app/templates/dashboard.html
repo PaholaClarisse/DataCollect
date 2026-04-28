@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard — DataCollect</title>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <h1>📋 DataCollect</h1>
+        <button onclick="logout()">Déconnexion</button>
+    </nav>
+
+    <!-- ACTIONS -->
+    <div>
+        <h2>Mes formulaires</h2>
+        <button onclick="openModal('createModal')">
+            ➕ Créer un formulaire
+        </button>
+    </div>
+
+    <!-- LISTE DES FORMULAIRES -->
+    <div id="formulaires-list">
+        Chargement...
+    </div>
+
+    <!-- MODAL CREATION FORMULAIRE -->
+    <div id="createModal" style="display:none">
+        <h2>Créer un formulaire</h2>
+        <input type="text" id="formTitle" placeholder="Titre du formulaire">
+        <textarea id="formDescription" placeholder="Description (optionnel)"></textarea>
+        <div id="champs-container"></div>
+        <button onclick="ajouterChamp()">➕ Ajouter un champ</button>
+        <button onclick="creerFormulaire()">✅ Créer</button>
+        <button onclick="closeModal('createModal')">Annuler</button>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token')
+        if (!token) window.location.href = '/'
+
+        function logout() {
+            localStorage.removeItem('token')
+            window.location.href = '/'
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block'
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none'
+        }
+
+        function ajouterChamp() {
+            const container = document.getElementById('champs-container')
+            const index = container.children.length
+            container.innerHTML += `
+                <div id="champ-${index}">
+                    <input type="text" id="label-${index}" placeholder="Nom du champ">
+                    <select id="type-${index}">
+                        <option value="texte">Texte</option>
+                        <option value="nombre">Nombre</option>
+                        <option value="email">Email</option>
+                        <option value="date">Date</option>
+                        <option value="choix_unique">Choix unique</option>
+                        <option value="choix_multiple">Choix multiple</option>
+                    </select>
+                    <label>
+                        <input type="checkbox" id="obligatoire-${index}" checked>
+                        Obligatoire
+                    </label>
+                    <button onclick="supprimerChamp(${index})">❌</button>
+                </div>
+            `
+        }
+
+        function supprimerChamp(index) {
+            document.getElementById(`champ-${index}`).remove()
+        }
+
+        async function creerFormulaire() {
+            const title = document.getElementById('formTitle').value
+            const description = document.getElementById('formDescription').value
+            const container = document.getElementById('champs-container')
+            const champs = []
+
+            for (let i = 0; i < container.children.length; i++) {
+                const label = document.getElementById(`label-${i}`)
+                const type = document.getElementById(`type-${i}`)
+                const obligatoire = document.getElementById(`obligatoire-${i}`)
+                if (label) {
+                    champs.push({
+                        label: label.value,
+                        type_champ: type.value,
+                        obligatoire: obligatoire.checked
+                    })
+                }
+            }
+
+            const response = await fetch('/formulaires', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({title, description, champs, actif: true})
+            })
+
+            if (response.ok) {
+                alert('Formulaire créé !')
+                closeModal('createModal')
+                loadFormulaires()
+            } else {
+                const data = await response.json()
+                alert(data.detail)
+            }
+        }
+
+        async function loadFormulaires() {
+            const response = await fetch('/formulaires', {
+                headers: {'Authorization': `Bearer ${token}`}
+            })
+            const data = await response.json()
+            const container = document.getElementById('formulaires-list')
+
+            if (data.length === 0) {
+                container.innerHTML = '<p>Aucun formulaire créé</p>'
+                return
+            }
+
+            container.innerHTML = data.map(f => `
+                <div>
+                    <h3>${f.title}</h3>
+                    <p>${f.description || 'Pas de description'}</p>
+                    <p>📊 Réponses : ${f.nombre_reponses}</p>
+                    <button onclick="copierLien('${f._id}')">🔗 Copier le lien</button>
+                    <button onclick="voirReponses('${f._id}')">👁 Voir réponses</button>
+                    <button onclick="supprimer('${f._id}')">🗑 Supprimer</button>
+                </div>
+            `).join('')
+        }
+        function copierLien(id) {
+        const lien = `${window.location.origin}/f/${id}`  // ✅ /f/ au lieu de /formulaires/
+        navigator.clipboard.writeText(lien)
+        alert('Lien copié !')
+}
+        function voirReponses(id) {
+            window.location.href = `/formulaires/${id}/reponses`
+        }
+
+        async function supprimer(id) {
+            if (!confirm('Supprimer ce formulaire ?')) return
+            await fetch(`/formulaires/${id}`, {
+                method: 'DELETE',
+                headers: {'Authorization': `Bearer ${token}`}
+            })
+            loadFormulaires()
+        }
+
+        loadFormulaires()
+    </script>
+
+</body>
+</html>
