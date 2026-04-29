@@ -22,7 +22,7 @@ passlib==1.7.4
 pyasn1==0.4.8
 pycparser==2.23
 pydantic==2.10.6
-pydantic-core==2.27.2
+pydantic-core>=2.27.2
 pymongo==4.9.2
 python-dotenv==1.0.1
 python-jose==3.4.0
