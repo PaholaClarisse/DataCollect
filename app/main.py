@@ -14,6 +14,10 @@ ENCODERS_BY_TYPE[ObjectId] = str  # Convertir ObjectId en string lors de la sér
 app = FastAPI(title="API de Collecte de Données", description="Une API pour la collecte de données avec authentification JWT", version="1.0.0")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "alive"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
