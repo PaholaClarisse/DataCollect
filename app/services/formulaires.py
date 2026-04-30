@@ -109,10 +109,15 @@ class FormulaireService:
             raise HTTPException(status_code=400,detail="Vous avez déjà soumis ce formulaire")
 
         # 4. Vérifier les champs obligatoires
-        champs_obligatoires = [champ["label"] for champ in formulaire["champs"] if champ["obligatoire"]]
+        champs_obligatoires = [champ["label"].strip().lower() for champ in formulaire["champs"] if champ["obligatoire"]]
+        donnees_keys = [key.strip().lower() for key in reponse.donnees.keys()]
         for champ in champs_obligatoires:
-            if champ not in reponse.donnees:
-                raise HTTPException(status_code=400,detail=f"Le champ '{champ}' est obligatoire")
+            if champ not in donnees_keys:
+                raise HTTPException(status_code=400, detail=f"Le champ '{champ}' est obligatoire")
+        #champs_obligatoires = [champ["label"] for champ in formulaire["champs"] if champ["obligatoire"]]
+        #for champ in champs_obligatoires:
+            #if champ not in reponse.donnees:
+                #raise HTTPException(status_code=400,detail=f"Le champ '{champ}' est obligatoire")
 
         # 5. Sauvegarder la réponse
         nouvelle_reponse = {
